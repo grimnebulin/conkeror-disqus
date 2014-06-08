@@ -66,85 +66,26 @@ define_key(
 //     });
 // }
 
-function is_disqus_iframe(node) {
-    return node.tagName == "IFRAME" &&
-        /disqus\.com\/embed\/comments\//.test(node.getAttribute("src"));
-}
-
-function when_element_has_descendant(root, predicate, callback, timeout) {
-    const result = predicate(root);
-    if (result) {
-        callback(result);
-        return;
-    }
-
-    const window = root.ownerDocument.defaultView;
-
-    const observer = new window.MutationObserver(
-        function () {
-            const result = predicate(root);
-            if (result) {
-                callback(result);
-                observer.disconnect();
-            }
-        }
-    );
-
-    observer.observe(
-        root, { childList: true, subtree: true }
-    );
-
-    if (timeout) {
-        window.setTimeout(
-            function () { observer.disconnect() }, timeout
-        );
-    }
-
-}
-
 add_dom_content_loaded_hook(function (buffer) {
-    when_element_has_descendant(
-        buffer.document.documentElement,
-        () => buffer.document.getElementById("disqus_thread"),
-        function (dt) {
-            when_element_has_descendant(
-                dt,
-                function () {
-                    const children = dt.childNodes;
-                    for (let i = 0; i < children.length; ++i) {
-                        const child = children[i];
-                        if (is_disqus_iframe(child)) {
-                            return child;
-                        }
-                    }
-                    return null;
-                },
-                function (iframe) {
-                    iframe.addEventListener("load", function () {
-                        const $ = $$(iframe.contentWindow);
-                        when_element_has_descendant(
-                            $.document.documentElement,
-                            () => $.document.getElementById("discovery-top"),
-                            elem => $(elem).remove(),
-                            20000
-                        );
-                        if (buffer.top_frame.__autoload_disqus_comments) {
-                            when_element_has_descendant(
-                                $.document.documentElement,
-                                function () {
-                                    return $.disqusButton().length > 0;
-                                },
-                                function () {
-                                    load_all_disqus_comments($);
-                                },
-                                20000
-                            );
-                        }
-                    });
+    $$(buffer).whenFound(
+        "#disqus_thread > iframe[src*='disqus.com/embed/comments/']",
+        function ([iframe]) {
+            iframe.addEventListener("load", function () {
+                const $ = $$(iframe.contentWindow);
+                $.whenFound(
+                    "#discovery-top",
+                    function (x) { x.remove() },
+                    20000
+                );
+                if (buffer.top_frame.__autoload_disqus_comments) {
+                    $.whenFound(
+                        "div.load-more > a.btn",
+                        function () { load_all_disqus_comments($) },
+                        20000
+                    );
                 }
-            )
+            });
         },
         10000
     );
-
 });
