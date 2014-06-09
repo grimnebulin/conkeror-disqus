@@ -62,7 +62,10 @@ add_dom_content_loaded_hook(function (buffer) {
         "#disqus_thread > iframe[src*='disqus.com/embed/comments/']",
         function ([iframe]) {
             for (let dir of ["north", "south"]) {
-                $top.whenFound("#" + dir, function (x) { x.remove() });
+                $top.whenFound(
+                    "#disqus-indicator-" + dir,
+                    function (x) { x.remove() }
+                );
             }
             iframe.addEventListener("load", function () {
                 const $ = $$(iframe.contentWindow);
