@@ -68,7 +68,10 @@ add_dom_content_loaded_hook(function (buffer) {
                 const $ = $$(iframe.contentWindow);
                 $.onDocumentMutation(
                     function () {
-                        $("a.see-more").clickthis();
+                        $("a.see-more")
+                            .not("[data-conk-clicked]")
+                            .attr("data-conk-clicked", "1")
+                            .clickthis();
                     }
                 );
                 $.whenFound("#discovery-top", function (x) { x.remove() });
