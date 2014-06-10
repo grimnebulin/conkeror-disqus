@@ -56,16 +56,17 @@ define_key(
     }
 );
 
+function remove_it(arg) {
+    arg.remove();
+}
+
 add_dom_content_loaded_hook(function (buffer) {
     const $top = $$(buffer);
     $top.whenFound(
         "#disqus_thread > iframe[src*='disqus.com/embed/comments/']",
         function ([iframe]) {
             for (let dir of ["north", "south"]) {
-                $top.whenFound(
-                    "#disqus-indicator-" + dir,
-                    function (x) { x.remove() }
-                );
+                $top.whenFound("#dsq-indicator-" + dir, remove_it);
             }
             iframe.addEventListener("load", function () {
                 const $ = $$(iframe.contentWindow);
@@ -74,7 +75,7 @@ add_dom_content_loaded_hook(function (buffer) {
                         $("a.see-more").not(".hidden").clickthis();
                     }
                 );
-                $.whenFound("#discovery-top", function (x) { x.remove() });
+                $.whenFound("#discovery-top", remove_it);
                 if (buffer.top_frame.__autoload_disqus_comments) {
                     $.whenFound(
                         "div.load-more > a.btn",
