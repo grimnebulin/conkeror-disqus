@@ -92,10 +92,6 @@ define_key(
     }
 );
 
-function remove_it(arg) {
-    arg.remove();
-}
-
 //  This function endeavors to tweak the behavior of the Disqus
 //  interface to make it less annoying.  It is a buffer-loaded hook
 //  that looks for a Disqus comments iframe on every page Conkeror
@@ -119,16 +115,13 @@ function make_disqus_bearable(buffer) {
     $top.whenFound(
         "#disqus_thread > iframe[src*='disqus.com/embed/comments/']",
         function ([iframe]) {
-            for (let dir of ["north", "south"]) {
-                $top.whenFound("#dsq-indicator-" + dir, remove_it);
-            }
+            $top.whenFound("#dsq-indicator-north", remove_it)
+                .whenFound("#dsq-indicator-south", remove_it);
             iframe.addEventListener("load", function () {
                 const $ = $$(iframe.contentWindow);
-                $.onDocumentMutation(
-                    function () {
-                        $("a.see-more").not(".hidden").clickthis();
-                    }
-                );
+                $.onDocumentMutation(function () {
+                    $("a.see-more").not(".hidden").clickthis();
+                });
                 $.whenFound("#discovery-top", remove_it);
                 if (buffer.top_frame.__autoload_disqus_comments) {
                     $.whenFound(
