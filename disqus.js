@@ -24,8 +24,12 @@ $$.static.disqusIframe = function () {
 //  found via either of the above methods, a Some object wrapping a
 //  jQuery object is returned; otherwise a None object is returned.
 
+function viewing_disqus_comments_page(window) {
+    return /\bdisqus\.com\/embed\/comments\//.test(window.location);
+}
+
 $$.static.disqus = function () {
-    if (/\bdisqus\.com\/embed\/comments\//.test(this.window.location)) {
+    if (viewing_disqus_comments_page(this.window)) {
         return Some(this);
     } else {
         return this.disqusIframe().enterIframe();
@@ -92,48 +96,80 @@ define_key(
     }
 );
 
-//  This function endeavors to tweak the behavior of the Disqus
-//  interface to make it less annoying.  It is a buffer-loaded hook
-//  that looks for a Disqus comments iframe on every page Conkeror
-//  loads (for a maximum of twenty seconds) and performs the following
-//  steps when one is found:
+//  The following functions endeavor to tweak the behavior of the
+//  Disqus interface to make it less annoying.
+
+//  This function is applied to all Disqus content, whether in an
+//  iframe or viewed directly:
 //
-//  1. Removes the "indicator" iframes that inform the user that more
-//  comments have been posted above or below the currently visible
-//  portion of the comments.  God, those are irritating.
+//  1. Removes the ads at the top of the comments.  No, thank you!
 //
-//  2. Removes the ads at the top of the comments.  No, thank you!
-//
-//  3. Automatically clicks any "See More" button as soon as it
+//  2. Automatically clicks any "See More" button as soon as it
 //  appears.  I hate having to do that myself over and over.
 //
-//  4. If the buffer's window has an __autoload_disqus_comments value
-//  that is true, calls load_all_disqus_comments() (see above).
+//  2. If the autoload argument is true, calls
+//  load_all_disqus_comments() (see above).
 
-function make_disqus_bearable(buffer) {
-    const $top = $$(buffer);
-    $top.whenFound(
+function fix_disqus_content($, autoload) {
+    $.onDocumentMutation(function () {
+        $("a.see-more").not(".hidden").clickthis();
+    });
+    $.whenFound("#discovery-top", remove_it);
+    if (autoload) {
+        $.whenFound(
+            "div.load-more > a.btn",
+            function () { load_all_disqus_comments($) },
+            20000
+        );
+    }
+}
+
+//  This function looks for an embedded Disqus comments iframe for up
+//  to twenty seconds.  When found, it fixes the iframe's content as
+//  per fix_disqus_content() above, and also removes the "indicator"
+//  iframes that inform the user that more comments have been posted
+//  above or below the currently visible portion of the comments.
+//  God, those are irritating.
+
+function fix_disqus_iframe($) {
+    $.whenFound(
         "#disqus_thread > iframe[src*='disqus.com/embed/comments/']",
         function ([iframe]) {
-            $top.whenFound("#dsq-indicator-north", remove_it)
-                .whenFound("#dsq-indicator-south", remove_it);
+            $.whenFound("#dsq-indicator-north", remove_it)
+             .whenFound("#dsq-indicator-south", remove_it);
             iframe.addEventListener("load", function () {
-                const $ = $$(iframe.contentWindow);
-                $.onDocumentMutation(function () {
-                    $("a.see-more").not(".hidden").clickthis();
-                });
-                $.whenFound("#discovery-top", remove_it);
-                if (buffer.top_frame.__autoload_disqus_comments) {
-                    $.whenFound(
-                        "div.load-more > a.btn",
-                        function () { load_all_disqus_comments($) },
-                        20000
-                    );
-                }
+                fix_disqus_content(
+                    $$(iframe.contentWindow),
+                    $.window.__autoload_disqus_comments
+                );
             });
         },
         20000
     );
+}
+
+//  This function is applied to Disqus pages that show content
+//  directly.
+
+function fix_disqus_comments_page($) {
+    // Override stylesheet's "html { overflow: hidden }" rule
+    // that hides scrollbars and prevents scrolling during
+    // text searches:
+    $("html").attr("style", "overflow: visible");
+    fix_disqus_content($);
+}
+
+//  Top level entry point for Disqus tweaks.  Dispatches to the
+//  appropriate function depending on whether we're viewing a Disqus
+//  comments page directly, or might have an embedded Disqus iframe.
+
+function make_disqus_bearable(buffer) {
+    const $ = $$(buffer);
+    if (viewing_disqus_comments_page($.window)) {
+        fix_disqus_comments_page($);
+    } else {
+        fix_disqus_iframe($);
+    }
 }
 
 add_dom_content_loaded_hook(make_disqus_bearable);
