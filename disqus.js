@@ -107,14 +107,15 @@ define_key(
 //  2. Automatically clicks any "See More" button as soon as it
 //  appears.  I hate having to do that myself over and over.
 //
-//  2. If the autoload argument is true, calls
-//  load_all_disqus_comments() (see above).
+//  3. If the autoload argument is true, calls
+//  load_all_disqus_comments() (see above) when the "Load More" button
+//  appears.
 
 function fix_disqus_content($, autoload) {
+    $.whenFound("#discovery-top", remove_it);
     $.onDocumentMutation(function () {
         $("a.see-more").not(".hidden").clickthis();
     });
-    $.whenFound("#discovery-top", remove_it);
     if (autoload) {
         $.whenFound(
             "div.load-more > a.btn",
