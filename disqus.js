@@ -59,6 +59,45 @@ function pop_out_disqus_comments(I) {
 
 define_key(default_global_keymap, "C-c d p", pop_out_disqus_comments);
 
+//  "Popping in" Disqus comments means to replace a comments iframe
+//  with the main content of the iframe.  Extraneous elements are
+//  removed, and a basic stylesheet is added to make the remaining
+//  elements somewhat resemble their original appearance.
+//
+//  Typically it would be more convenient to read comments in a
+//  popped-out window, but popping in might be called for if one were
+//  deep into a page's comments and didn't want to wait for them to be
+//  re-loaded again in another window.
+
+const DISQUS_REMOVE_SELECTORS = Object.freeze([
+    "a.see-more", "ul.post-menu", "script", "footer",
+    "#form", "div.nav.nav-secondary"
+]);
+
+const DISQUS_COMMENTS_STYLE =
+    "<style type='text/css'>" +
+    ".avatar { float: left } " +
+    ".avatar img { width: 36px; height: 36px }" +
+    "</style>";
+
+function pop_in_disqus_comments(I) {
+    const $ = $$(I);
+    $.disqusIframe().each(function () {
+        const comments = $(
+            $.document.adoptNode(
+                this.contentWindow.document.getElementById("conversation")
+            )
+        );
+        for (let selector of DISQUS_REMOVE_SELECTORS)
+            comments.find(selector).remove();
+        comments.append(DISQUS_COMMENTS_STYLE);
+        $(this).replaceWith(comments);
+    }).length > 0
+        || I.minibuffer.message("No Disqus iframes on this page!");
+}
+
+define_key(default_global_keymap, "C-c d i", pop_in_disqus_comments);
+
 //  This function essentially just clicks on the "See More Comments"
 //  button once, loading another batch of comments.
 
