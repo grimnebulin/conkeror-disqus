@@ -59,10 +59,12 @@ function pop_out_disqus_comments(I) {
 
 define_key(default_global_keymap, "C-c d p", pop_out_disqus_comments);
 
-//  "Popping in" Disqus comments means to replace a comments iframe
-//  with the main content of the iframe.  Extraneous elements are
-//  removed, and a basic stylesheet is added to make the remaining
-//  elements somewhat resemble their original appearance.
+//  "Swapping" Disqus comments means to hide the original comments
+//  iframe, and replace it with the main content of the iframe.
+//  Extraneous elements are removed, and a basic stylesheet is added
+//  to make the remaining elements somewhat resemble their original
+//  appearance.  Swapping again hides the extracted content and makes
+//  the original iframe visible again.
 //
 //  Typically it would be more convenient to read comments in a
 //  popped-out window, but popping in might be called for if one were
@@ -80,23 +82,41 @@ const DISQUS_COMMENTS_STYLE =
     ".avatar img { width: 36px; height: 36px }" +
     "</style>";
 
-function pop_in_disqus_comments(I) {
-    const $ = $$(I);
-    $.disqusIframe().each(function () {
+function disqus_comments_swapper($) {
+    const iframe = $.disqusIframe().before(function () {
         const comments = $(
-            $.document.adoptNode(
-                this.contentWindow.document.getElementById("conversation")
+            $.document.importNode(
+                this.contentWindow.document.getElementById("conversation"),
+                true // deep copy
             )
         );
         for (let selector of DISQUS_REMOVE_SELECTORS)
             comments.find(selector).remove();
-        comments.append(DISQUS_COMMENTS_STYLE);
-        $(this).replaceWith(comments);
-    }).length > 0
+        comments.prepend(DISQUS_COMMENTS_STYLE);
+        return comments.hide();
+    });
+    return iframe.length == 0 ? None() : Some(
+        let (comments = iframe.prev(), state = true)
+        function () {
+            (state ? iframe : comments).hide();
+            state = !state;
+            (state ? iframe : comments).show();
+        }
+    );
+}
+
+function swapper_for(buffer) {
+    const window = buffer.top_frame;
+    return window.__conk_swapper = window.__conk_swapper ||
+        disqus_comments_swapper($$(buffer));
+}
+
+function swap_disqus_comments(I) {
+    swapper_for(I.buffer).foreach(f => f()).nonempty
         || I.minibuffer.message("No Disqus iframes on this page!");
 }
 
-define_key(default_global_keymap, "C-c d i", pop_in_disqus_comments);
+define_key(default_global_keymap, "C-c d s", swap_disqus_comments);
 
 //  This function essentially just clicks on the "See More Comments"
 //  button once, loading another batch of comments.
