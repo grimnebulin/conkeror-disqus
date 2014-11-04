@@ -155,6 +155,14 @@ define_key(
     }
 );
 
+function load_all_disqus_comments_when_ready($) {
+    $.whenFound(
+        "div.load-more > a.btn",
+        function () { load_all_disqus_comments($) },
+        20000
+    );
+}
+
 //  The following functions endeavor to tweak the behavior of the
 //  Disqus interface to make it less annoying.
 
@@ -176,12 +184,21 @@ function fix_disqus_content($, autoload) {
         $("a.see-more").not(".hidden").clickthis();
     });
     if (autoload) {
-        $.whenFound(
-            "div.load-more > a.btn",
-            function () { load_all_disqus_comments($) },
-            20000
-        );
+        if (typeof(autoload) == "number") {
+            if (autoload >= 1)
+                load_all_disqus_comments_if_within_threshold($, autoload);
+        } else {
+            load_all_disqus_comments_when_ready($);
+        }
     }
+}
+
+function load_all_disqus_comments_if_within_threshold($, threshold) {
+    $.whenFound("span.comment-count", function () {
+        const match = this.text().match(/^\s*(\d+)\b/);
+        if (match && parseInt(match[1], 10) <= threshold)
+            load_all_disqus_comments_when_ready($);
+    });
 }
 
 //  This function looks for an embedded Disqus comments iframe for up
