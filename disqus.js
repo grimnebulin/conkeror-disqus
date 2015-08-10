@@ -179,7 +179,7 @@ function load_all_disqus_comments_when_ready($) {
 //  appears.
 
 function fix_disqus_content($, autoload) {
-    $.whenFound("#discovery-top", remove_it);
+    $.whenFound("#placement-top", remove_it);
     $.onDocumentMutation(function () {
         $("a.see-more").not(".hidden").clickthis();
     });
