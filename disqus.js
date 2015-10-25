@@ -212,8 +212,8 @@ function fix_disqus_iframe($) {
     $.whenFound(
         "#disqus_thread > iframe[src*='disqus.com/embed/comments/']",
         function ([iframe]) {
-            $.whenFound("#dsq-indicator-north", remove_it)
-             .whenFound("#dsq-indicator-south", remove_it);
+            $.whenFound("#indicator-north", remove_it)
+             .whenFound("#indicator-south", remove_it);
             iframe.addEventListener("load", function () {
                 fix_disqus_content(
                     $$(iframe.contentWindow),
