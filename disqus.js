@@ -1,3 +1,5 @@
+"use strict";
+
 //
 //  Routines for dealing with Disqus comments.
 //
