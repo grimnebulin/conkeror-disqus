@@ -22,6 +22,17 @@
 //  Routines for dealing with Disqus comments.
 //
 
+try {
+    register_site_variables("disqus", function (buffer) {
+        return {
+            autoload_disqus_comments: function () {
+                buffer.top_frame.__autoload_disqus_comments =
+                    arguments.length > 0 ? arguments[0] : true;
+            }
+        };
+    });
+} catch (e) { }
+
 //  Useful jQuery methods:
 
 //  This static method returns a jQuery object wrapping the iframe
