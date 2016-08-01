@@ -69,4 +69,4 @@ package mitigates my irritation somewhat.
 
 # DEPENDENCIES
 
-- [conkeror-jquery](../conkeror-jquery)
+- [conkeror-jquery](https://github.com/grimnebulin/conkeror-jquery)
