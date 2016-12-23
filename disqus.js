@@ -126,14 +126,19 @@ function disqus_comments_swapper($) {
         comments.prepend(DISQUS_COMMENTS_STYLE);
         return comments.hide();
     });
-    return iframe.length == 0 ? None() : Some(
-        let (comments = iframe.prev(), state = true)
-        function () {
-            (state ? iframe : comments).hide();
-            state = !state;
-            (state ? iframe : comments).show();
-        }
-    );
+    if (iframe.length == 0) {
+        return None;
+    } else {
+        let comments = iframe.prev();
+        let state = true;
+        return Some(
+            function () {
+                (state ? iframe : comments).hide();
+                state = !state;
+                (state ? iframe : comments).show();
+            }
+        )
+    }
 }
 
 function swapper_for(buffer) {
