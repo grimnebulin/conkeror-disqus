@@ -247,7 +247,8 @@ function load_all_disqus_comments_if_within_threshold($, threshold) {
 function fix_disqus_iframe($) {
     $.whenFound(
         "#disqus_thread > iframe[src*='disqus.com/embed/comments/']",
-        function ([iframe]) {
+        function (iframes) {
+            const iframe = iframes[0];
             $.whenFound("#indicator-north", remove_it)
              .whenFound("#indicator-south", remove_it);
             iframe.addEventListener("load", function () {
