@@ -171,14 +171,46 @@ define_key(default_global_keymap, "C-c d m", load_more_disqus_comments);
 
 //  This function clicks on the "See More Comments" button repeatedly,
 //  for a long as it appears, loading all available comments.
+//  Also, cleans up hyperlinks in all comments (see below).
 //  Returns true if Disqus comments were found, false otherwise.
 
 function load_all_disqus_comments($) {
     return $.disqus().foreach(function ($) {
+        $("#post-list").onSubtreeMutation(clean_up_disqus_hyperlinks);
         $.disqusButton().onAttrChange(function () {
             if (!this.hasClass("busy")) this.clickthis();
         }, "class").clickthis();
     }).nonempty;
+}
+
+//  This function "cleans up" hyperlinks in Disqus comments in the
+//  following way:
+//
+//  - Makes all hyperlinks open in a new tab.  (Conkeror often can't
+//    follow links in iframes, for some reason, so the usual C-u f
+//    doesn't work).
+//
+//  - Replaces the content of hyperlinks with the full destination
+//    URL.  The original hyperlinks actually point to Disqus, with the
+//    eventual destination in a "url" query parameter, which is what's
+//    extracted and used.  Disqus appends a colon and a random-looking
+//    string of characters to this URL, so we remove that.
+
+function clean_up_disqus_hyperlinks() {
+    const $ = this.constructor;
+    const search_params = function (uri) {
+        return new URLSearchParams(
+            make_uri(uri).QueryInterface(Ci.nsIURL).query
+        );
+    };
+    this.find("div.post-message a").each(function () {
+        Success($(this))
+            .filter(a => a.children().length === 0 && a.text().endsWith("..."))
+            .foreach(a => a.attr("target", "_blank"))
+            .map(a => [ a, search_params(a.attr("href")) ])
+            .filter(([_, params]) => params.has("url"))
+            .foreach(([a, params]) => a.text(params.get("url").replace(/(.*):.*/, "$1")))
+    });
 }
 
 define_key(
