@@ -227,7 +227,7 @@ function load_all_disqus_comments_when_ready($) {
     $.whenFound(
         "div.load-more > a.btn",
         function () { load_all_disqus_comments($) },
-        20000
+        60000
     );
 }
 
@@ -252,9 +252,10 @@ function fix_disqus_content($, autoload) {
         $("a.see-more").not(".hidden").clickthis();
     });
     if (autoload) {
-        if (typeof(autoload) == "number") {
-            if (autoload >= 1)
+        if (typeof(autoload) === "number") {
+            if (autoload >= 1) {
                 load_all_disqus_comments_if_within_threshold($, autoload);
+            }
         } else {
             load_all_disqus_comments_when_ready($);
         }
@@ -270,7 +271,7 @@ function load_all_disqus_comments_if_within_threshold($, threshold) {
 }
 
 //  This function looks for an embedded Disqus comments iframe for up
-//  to twenty seconds.  When found, it fixes the iframe's content as
+//  to sixty seconds.  When found, it fixes the iframe's content as
 //  per fix_disqus_content() above, and also removes the "indicator"
 //  iframes that inform the user that more comments have been posted
 //  above or below the currently visible portion of the comments.
@@ -290,7 +291,7 @@ function fix_disqus_iframe($) {
                 );
             });
         },
-        20000
+        60000
     );
 }
 
