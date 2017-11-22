@@ -210,7 +210,7 @@ function clean_up_disqus_hyperlinks() {
             .foreach(a => a.attr("target", "_blank"))
             .map(a => [ a, search_params(a.attr("href")) ])
             .filter(([_, params]) => params.has("url"))
-            .foreach(([a, params]) => a.text(params.get("url").replace(/(.*):.*/, "$1")))
+            .foreach(([a, params]) => a.text(params.get("url").replace(/(.*):.*/, "$1")));
     });
 }
 
