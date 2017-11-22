@@ -107,11 +107,12 @@ const DISQUS_REMOVE_SELECTORS = Object.freeze([
     "#form", "div.nav.nav-secondary"
 ]);
 
-const DISQUS_COMMENTS_STYLE =
-    "<style type='text/css'>" +
-    ".avatar { float: left } " +
-    ".avatar img { width: 36px; height: 36px }" +
-    "</style>";
+const DISQUS_COMMENTS_STYLE = `
+<style type='text/css'>
+  .avatar { float: left }
+  .avatar img { width: 36px; height: 36px }
+</style>
+`;
 
 function disqus_comments_swapper($) {
     const iframe = $.disqusIframe().before(function () {
