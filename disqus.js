@@ -243,7 +243,9 @@ function load_all_disqus_comments_when_ready($) {
 //  2. Automatically clicks any "See More" button as soon as it
 //  appears.  I hate having to do that myself over and over.
 //
-//  3. If the autoload argument is true, calls
+//  3. Automatically click any "See more replies" buttons.
+//
+//  4. If the autoload argument is true, calls
 //  load_all_disqus_comments() (see above) when the "Load More" button
 //  appears.
 
@@ -251,6 +253,7 @@ function fix_disqus_content($, autoload) {
     $.whenFound("#placement-top", remove_it);
     $.onDocumentMutation(function () {
         $("a.see-more").not(".hidden").clickthis();
+        $("div.show-children-wrapper").not(".hidden").children("a").not(".busy").clickthis();
     });
     if (autoload) {
         if (typeof(autoload) === "number") {
